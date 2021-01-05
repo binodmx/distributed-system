@@ -15,10 +15,13 @@ public class Main {
         DatagramSocket datagramSocket = null;
         ArrayList<Node> nodes = new ArrayList<>();
         try {
-            datagramSocket = new DatagramSocket(55555);
-            System.out.println("Bootstrap Server created at port 55555. Waiting for incoming data...");
+            datagramSocket = new DatagramSocket(Integer.parseInt(args[0]));
+            System.out.println("Bootstrap Server created at port " + args[0] + ". Waiting for incoming data...");
         } catch (SocketException e) {
-            System.out.println("Error: " + e);
+            System.out.println(e);
+            System.exit(0);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            System.out.println("Error: Undefined port number.");
             System.exit(0);
         }
         while (true) {
@@ -76,7 +79,7 @@ public class Main {
                             }
                         }
                     case "PRINT":
-                        response += "PRINTOK";
+                        response += "PRINTOK " + Integer.toString(nodes.size());
                         for (Node node : nodes) {
                             response +=  " " + node.getIpAddress() + " " + node.getPort() + " " + node.getUsername();
                         }
