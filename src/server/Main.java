@@ -3,7 +3,6 @@ package server;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
@@ -18,7 +17,7 @@ public class Main {
             datagramSocket = new DatagramSocket(Integer.parseInt(args[0]));
             System.out.println("Bootstrap Server created at port " + args[0] + ". Waiting for incoming data...");
         } catch (SocketException e) {
-            System.out.println(e);
+            System.out.println("Error: Couldn't initialize the socket.");
             System.exit(0);
         } catch (ArrayIndexOutOfBoundsException e) {
             System.out.println("Error: Undefined port number.");
