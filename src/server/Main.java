@@ -9,18 +9,21 @@ import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
 public class Main {
-    private static final int MAX_NODES = 10;
     public static void main(String[] args) {
         DatagramSocket datagramSocket = null;
+        int DEFAULT_PORT = 55555;
+        int MAX_NODES = 10;
         ArrayList<Node> nodes = new ArrayList<>();
         try {
-            datagramSocket = new DatagramSocket(Integer.parseInt(args[0]));
+            if (args.length == 1) {
+                DEFAULT_PORT = Integer.parseInt(args[0]);
+            } else if (args.length == 2) {
+                MAX_NODES = Integer.parseInt(args[1]);
+            }
+            datagramSocket = new DatagramSocket(DEFAULT_PORT);
             System.out.println("Bootstrap Server created at port " + args[0] + ". Waiting for incoming data...");
         } catch (SocketException e) {
             System.out.println("Error: Couldn't initialize the socket.");
-            System.exit(0);
-        } catch (ArrayIndexOutOfBoundsException e) {
-            System.out.println("Error: Undefined port number.");
             System.exit(0);
         }
         while (true) {
