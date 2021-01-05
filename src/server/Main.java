@@ -21,7 +21,7 @@ public class Main {
                 MAX_NODES = Integer.parseInt(args[1]);
             }
             datagramSocket = new DatagramSocket(DEFAULT_PORT);
-            System.out.println("Bootstrap Server created at port " + args[0] + ". Waiting for incoming data...");
+            System.out.println("Bootstrap Server created at port " + DEFAULT_PORT + ". Waiting for incoming data...");
         } catch (SocketException e) {
             System.out.println("Error: Couldn't initialize the socket.");
             System.exit(0);
