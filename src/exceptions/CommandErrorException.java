@@ -1,4 +1,4 @@
-package server;
+package exceptions;
 
 public class CommandErrorException extends Exception {
     public CommandErrorException(String message) {

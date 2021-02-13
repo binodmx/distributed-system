@@ -1,9 +1,14 @@
-package server;
+package common;
 
 public class Node {
     private final String ipAddress;
     private final String port;
-    private final String username;
+    private String username;
+
+    public Node(String ipAddress, String port) {
+        this.ipAddress = ipAddress;
+        this.port = port;
+    }
 
     public Node(String ipAddress, String port, String username) {
         this.ipAddress = ipAddress;
