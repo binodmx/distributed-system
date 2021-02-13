@@ -2,15 +2,15 @@ package common;
 
 public class Node {
     private final String ipAddress;
-    private final String port;
+    private final int port;
     private String username;
 
-    public Node(String ipAddress, String port) {
+    public Node(String ipAddress, int port) {
         this.ipAddress = ipAddress;
         this.port = port;
     }
 
-    public Node(String ipAddress, String port, String username) {
+    public Node(String ipAddress, int port, String username) {
         this.ipAddress = ipAddress;
         this.port = port;
         this.username = username;
@@ -20,7 +20,7 @@ public class Node {
         return ipAddress;
     }
 
-    public String getPort() {
+    public int getPort() {
         return port;
     }
 

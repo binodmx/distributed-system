@@ -29,7 +29,7 @@ public class Server {
                 }
             }
             datagramSocket = new DatagramSocket(DEFAULT_PORT);
-            System.out.println("Bootstrap Server is created at port " + DEFAULT_PORT + ". Waiting for incoming data...");
+            System.out.println("Bootstrap Server is created at port " + DEFAULT_PORT + ". Waiting for incoming requests...");
         } catch (SocketException e) {
             System.out.println("Error: Couldn't initialize the socket.");
             System.exit(0);
@@ -45,11 +45,17 @@ public class Server {
                 System.out.println(incomingDatagramPacket.getAddress() + ":" + incomingDatagramPacket.getPort() +
                         " - " + request.replace("\n", ""));
                 StringTokenizer stringTokenizer = new StringTokenizer(request.trim(), " ");
-                String length = stringTokenizer.nextToken();
-                String command = stringTokenizer.nextToken();
+                String length;
+                String command;
                 String ipAddress;
-                String port;
                 String username;
+                int port;
+                try {
+                    length = stringTokenizer.nextToken();
+                    command = stringTokenizer.nextToken();
+                } catch (NoSuchElementException e) {
+                    throw new IOException();
+                }
                 switch (command.toUpperCase()) {
                     case "REG":
                         response.append("REGOK ");
@@ -58,7 +64,7 @@ public class Server {
                         }
                         try {
                             ipAddress = stringTokenizer.nextToken();
-                            port = stringTokenizer.nextToken();
+                            port = Integer.parseInt(stringTokenizer.nextToken());
                             username = stringTokenizer.nextToken();
                         } catch (NoSuchElementException e) {
                             throw new CommandErrorException("9999");
@@ -66,7 +72,7 @@ public class Server {
                         for (Node node : nodes) {
                             if (!node.getIpAddress().equals(ipAddress)) {
                                 continue;
-                            } else if (!node.getPort().equals(port)) {
+                            } else if (node.getPort() != port) {
                                 continue;
                             } else if (!node.getUsername().equals(username)) {
                                 throw new AlreadyAssignedException("9997");
@@ -84,14 +90,14 @@ public class Server {
                         response.append("UNROK ");
                         try {
                             ipAddress = stringTokenizer.nextToken();
-                            port = stringTokenizer.nextToken();
+                            port = Integer.parseInt(stringTokenizer.nextToken());
                             username = stringTokenizer.nextToken();
                         } catch (NoSuchElementException e) {
                             throw new CommandErrorException("9999");
                         }
                         boolean unregistered = false;
                         for (Node node : nodes) {
-                            if (node.getIpAddress().equals(ipAddress) && node.getPort().equals(port)) {
+                            if (node.getIpAddress().equals(ipAddress) && node.getPort() == port) {
                                 nodes.remove(node);
                                 unregistered = true;
                                 break;
@@ -109,10 +115,13 @@ public class Server {
                             response.append(" ").append(node.getIpAddress()).append(" ").append(node.getPort()).append(" ").append(node.getUsername());
                         }
                         break;
+                    case "SHUTDOWN":
+                        System.out.println("Server stopped.");
+                        System.exit(0);
                     default:
                         throw new IOException();
                 }
-            } catch (IOException | AssertionError | NoSuchElementException e) {
+            } catch (IOException | AssertionError e) {
                 response = new StringBuilder("ERROR");
             } catch (CommandErrorException | AlreadyAssignedException | AlreadyRegisteredException |
                     ServerFullException e) {

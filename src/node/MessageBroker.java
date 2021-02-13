@@ -5,7 +5,6 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
-import java.util.StringTokenizer;
 
 public class MessageBroker {
     private final DatagramSocket datagramSocket;
@@ -23,5 +22,4 @@ public class MessageBroker {
         datagramSocket.receive(responseDatagramPacket);
         return new String(responseDatagramPacket.getData(), 0, responseDatagramPacket.getLength());
     }
-
 }
