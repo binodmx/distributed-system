@@ -1,4 +1,6 @@
-package node;
+package comms;
+
+import common.Constants;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -22,10 +24,10 @@ public class MessageBroker {
         datagramSocket.send(datagramPacket);
     }
 
-    public DatagramPacket receive() throws IOException {
+    public DatagramPacket receive(int timeout) throws IOException {
         byte[] buffer = new byte[65536];
         DatagramPacket requestDatagramPacket = new DatagramPacket(buffer, buffer.length);
-        datagramSocket.setSoTimeout(Constants.NODE_REQUEST_TIMEOUT);
+        datagramSocket.setSoTimeout(timeout);
         datagramSocket.receive(requestDatagramPacket);
         return requestDatagramPacket;
     }

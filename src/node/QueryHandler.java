@@ -1,7 +1,9 @@
 package node;
 
+import common.Constants;
 import common.File;
 import common.Node;
+import comms.MessageBroker;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -43,7 +45,7 @@ public class QueryHandler implements Runnable {
             StringBuilder response = new StringBuilder();
             DatagramPacket incomingDatagramPacket = null;
             try {
-                incomingDatagramPacket = messageBroker.receive();
+                incomingDatagramPacket = messageBroker.receive(Constants.NODE_REQUEST_TIMEOUT);
             } catch (IOException e) {
                 continue;
             }

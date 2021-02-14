@@ -1,6 +1,8 @@
 package server;
 
+import common.Constants;
 import common.Node;
+import comms.MessageBroker;
 import exceptions.AlreadyAssignedException;
 import exceptions.AlreadyRegisteredException;
 import exceptions.CommandErrorException;
@@ -16,30 +18,36 @@ import java.util.StringTokenizer;
 
 public class Server {
     public static void main(String[] args) {
-        DatagramSocket datagramSocket = null;
-        int DEFAULT_PORT = 55555;
-        int MAX_NODES = 10;
         ArrayList<Node> nodes = new ArrayList<>();
+
+        // initializing datagram socket
+        DatagramSocket datagramSocket = null;
+        int MY_PORT = 55555;
         try {
             for (String arg : args) {
-                if (arg.toLowerCase().startsWith("port=")) {
-                    DEFAULT_PORT = Integer.parseInt(arg.substring(5));
-                } else if (arg.toLowerCase().startsWith("max=")) {
-                    MAX_NODES = Integer.parseInt(arg.substring(4));
+                if (arg.toLowerCase().startsWith("-port=")) {
+                    MY_PORT = Integer.parseInt(arg.substring(6));
                 }
             }
-            datagramSocket = new DatagramSocket(DEFAULT_PORT);
-            System.out.println("Bootstrap Server is created at port " + DEFAULT_PORT + ". Waiting for incoming requests...");
+            datagramSocket = new DatagramSocket(MY_PORT);
         } catch (SocketException e) {
             System.out.println("Error: Couldn't initialize the socket.");
             System.exit(0);
         }
+
+        // initializing message broker
+        MessageBroker messageBroker = new MessageBroker(datagramSocket);
+
+        System.out.println("Bootstrap Server is created at port " + MY_PORT + ". Waiting for incoming requests...");
         while (true) {
             StringBuilder response = new StringBuilder();
-            byte[] buffer = new byte[65536];
-            DatagramPacket incomingDatagramPacket = new DatagramPacket(buffer, buffer.length);
+            DatagramPacket incomingDatagramPacket = null;
             try {
-                datagramSocket.receive(incomingDatagramPacket);
+                incomingDatagramPacket = messageBroker.receive(Constants.SERVER_REQUEST_TIMEOUT);
+            } catch (IOException e) {
+                continue;
+            }
+            try {
                 String request = new String(incomingDatagramPacket.getData(), 0,
                         incomingDatagramPacket.getLength());
                 System.out.println(incomingDatagramPacket.getAddress() + ":" + incomingDatagramPacket.getPort() +
@@ -59,7 +67,7 @@ public class Server {
                 switch (command.toUpperCase()) {
                     case "REG":
                         response.append("REGOK ");
-                        if (nodes.size() == MAX_NODES) {
+                        if (nodes.size() == Constants.MAX_NODES) {
                             throw new ServerFullException("9996");
                         }
                         try {
@@ -115,9 +123,10 @@ public class Server {
                             response.append(" ").append(node.getIpAddress()).append(" ").append(node.getPort()).append(" ").append(node.getUsername());
                         }
                         break;
-                    case "SHUTDOWN":
-                        System.out.println("Server stopped.");
-                        System.exit(0);
+                    case "RESET":
+                        response.append("RESETOK");
+                        nodes.clear();
+                        break;
                     default:
                         throw new IOException();
                 }
@@ -128,13 +137,14 @@ public class Server {
                 response.append(e.getMessage());
             } finally {
                 response = new StringBuilder(String.format("%04d", response.length() + 5) + " " + response + "\n");
-                DatagramPacket outgoingDatagramPacket = new DatagramPacket(
-                        response.toString().getBytes(),
-                        response.toString().getBytes().length,
-                        incomingDatagramPacket.getAddress(),
-                        incomingDatagramPacket.getPort());
                 try {
-                    datagramSocket.send(outgoingDatagramPacket);
+                    DatagramPacket outgoingDatagramPacket = new DatagramPacket(
+                            response.toString().getBytes(),
+                            response.toString().getBytes().length,
+                            incomingDatagramPacket.getAddress(),
+                            incomingDatagramPacket.getPort()
+                    );
+                    messageBroker.send(outgoingDatagramPacket, Constants.SERVER_RESPONSE_TIMEOUT);
                 } catch (IOException e) {
                     System.out.println("Error: Unable to send response.");
                 }
