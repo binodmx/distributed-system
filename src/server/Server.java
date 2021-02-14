@@ -27,6 +27,12 @@ public class Server {
             for (String arg : args) {
                 if (arg.toLowerCase().startsWith("-port=")) {
                     MY_PORT = Integer.parseInt(arg.substring(6));
+                } else if (arg.toLowerCase().equals("-help")) {
+                    System.out.println("Usage: java server [-port=<port>] [-help]\n");
+                    System.out.println("Default port = 55555.");
+                } else {
+                    System.out.println("Error: Invalid arguments.\nUse 'java server -help' command for help.");
+                    System.exit(0);
                 }
             }
             datagramSocket = new DatagramSocket(MY_PORT);
@@ -124,7 +130,7 @@ public class Server {
                         }
                         break;
                     case "RESET":
-                        response.append("RESETOK");
+                        response.append("RESETOK 0");
                         nodes.clear();
                         break;
                     default:

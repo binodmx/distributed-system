@@ -4,6 +4,10 @@ import common.Constants;
 import common.File;
 import common.Node;
 import comms.MessageBroker;
+import exceptions.AlreadyAssignedException;
+import exceptions.AlreadyRegisteredException;
+import exceptions.CommandErrorException;
+import exceptions.ServerFullException;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -20,19 +24,24 @@ public class QueryHandler implements Runnable {
     private MessageBroker messageBroker;
     private final String NODE_IP;
     private final int NODE_PORT;
+    private final String NODE_USERNAME;
+    private final String SERVER_IP;
+    private final int SERVER_PORT;
 
-    public QueryHandler(ArrayList<Node> nodes, ArrayList<File> files, String NODE_IP, int NODE_PORT) {
+    public QueryHandler(ArrayList<Node> nodes, ArrayList<File> files, String NODE_IP, int NODE_PORT, String NODE_USERNAME, String SERVER_IP, int SERVER_PORT) {
         this.nodes = nodes;
         this.files = files;
         this.NODE_IP = NODE_IP;
         this.NODE_PORT = NODE_PORT;
+        this.NODE_USERNAME = NODE_USERNAME;
+        this.SERVER_IP = SERVER_IP;
+        this.SERVER_PORT = SERVER_PORT;
 
         // initializing datagram socket
         try {
             this.datagramSocket = new DatagramSocket(NODE_PORT);
         } catch (SocketException e) {
             System.out.println("Error: Couldn't initialize the datagram socket.");
-            System.exit(0);
         }
 
         // initializing message broker
@@ -151,6 +160,101 @@ public class QueryHandler implements Runnable {
                         } else {
                             response.append("0");
                         }
+                        break;
+                    case "START":
+                        response.append("STARTOK ");
+                        // registering with the server
+                        try {
+                            request = "REG " + NODE_IP + " " + NODE_PORT + " " + NODE_USERNAME;
+                            request = String.format("%04d", request.length() + 5) + " " + request + "\n";
+                            String mbResponse = messageBroker.sendAndReceive(request, SERVER_IP, SERVER_PORT, Constants.SERVER_REG_TIMEOUT);
+                            System.out.println(mbResponse.trim());
+                            // Here onwards, assume that node always gets a correct response from the server.
+                            // Otherwise stringTokenizer will return NoSuchElement exception
+                            stringTokenizer = new StringTokenizer(mbResponse.trim(), " ");
+                            length = stringTokenizer.nextToken();
+                            command = stringTokenizer.nextToken();
+                            String nodesCount = stringTokenizer.nextToken();
+                            switch (nodesCount) {
+                                case "0":
+                                    System.out.println("Registered successfully. No nodes in the system yet.");
+                                    break;
+                                case "9999":
+                                    throw new CommandErrorException("Error: Registration failed. There is some error in the command.");
+                                case "9998":
+                                    throw new AlreadyRegisteredException("Error: Registration failed. Already registered to you. Unregister first to register again.");
+                                case "9997":
+                                    throw new AlreadyAssignedException("Error: Registration failed. Already registered to another user. Try different IP and port");
+                                case "9996":
+                                    throw new ServerFullException("Error: Registration failed. Can't register, server is full.");
+                                default:
+                                    while (stringTokenizer.hasMoreTokens()) {
+                                        ipAddress = stringTokenizer.nextToken();
+                                        port = Integer.parseInt(stringTokenizer.nextToken());
+                                        nodes.add(new common.Node(ipAddress, port));
+                                    }
+                                    System.out.println("Registered successfully.");
+                            }
+                        } catch (CommandErrorException | AlreadyRegisteredException | AlreadyAssignedException | ServerFullException e) {
+                            System.out.println(e.getMessage());
+                            response.append("9999");
+                        } catch (IOException e) {
+                            System.out.println("Error: Couldn't register with the server.");
+                            response.append("9999");
+                        }
+                        // joining the network
+                        for (common.Node node : nodes) {
+                            try {
+                                request = "JOIN " + NODE_IP + " " + NODE_PORT;
+                                request = String.format("%04d", request.length() + 5) + " " + request + "\n";
+                                String mbResponse = messageBroker.sendAndReceive(request, node.getIpAddress(), node.getPort(), Constants.NODE_JOIN_TIMEOUT);
+                                System.out.println(mbResponse.trim());
+                            } catch (IOException e) {
+                                System.out.println("Error: Couldn't join the node at " + node.getIpAddress() + ":" + node.getPort());
+                                if (!response.toString().contains("9999")) {
+                                    response.append("9999");
+                                }
+                            }
+                        }
+                        if (!response.toString().contains("9999")) {
+                            response.append("0");
+                        }
+                        break;
+                    case "STOP":
+                        response.append("STOPOK ");
+                        // leaving from the network
+                        for (common.Node node : nodes) {
+                            try {
+                                request = "LEAVE " + NODE_IP + " " + NODE_PORT;
+                                request = String.format("%04d", request.length() + 5) + " " + request + "\n";
+                                String mbResponse = messageBroker.sendAndReceive(request, node.getIpAddress(), node.getPort(), Constants.NODE_LEAVE_TIMEOUT);
+                                System.out.println(mbResponse.trim());
+                            } catch (IOException e) {
+                                System.out.println("Error: Couldn't leave the node at " + node.getIpAddress() + ":" + node.getPort());
+                                response.append("9999");
+                            }
+                        }
+                        // unregistering from the server
+                        try {
+                            request = "UNREG " + NODE_IP + " " + NODE_PORT + " " + NODE_USERNAME;
+                            request = String.format("%04d", request.length() + 5) + " " + request + "\n";
+                            String mbResponse = messageBroker.sendAndReceive(request, SERVER_IP, SERVER_PORT, Constants.SERVER_UNREG_TIMEOUT);
+                            System.out.println(mbResponse.trim());
+                            // todo: handle unregister error codes
+                        } catch (IOException e) {
+                            System.out.println("Error: Couldn't unregister from the server.");
+                            if (!response.toString().contains("9999")) {
+                                response.append("9999");
+                            }
+                        }
+                        if (!response.toString().contains("9999")) {
+                            response.append("0");
+                        }
+                        break;
+                    case "DOWNLOAD":
+                        response.append("DOWNLOADOK ");
+                        // todo: ftp client code here
+                        response.append("0");
                         break;
                     case "PRINT":
                         response.append("PRINTOK ").append(nodes.size());
