@@ -5,6 +5,7 @@ import common.MessageBroker;
 
 import java.io.IOException;
 import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.StringTokenizer;
 
@@ -65,18 +66,54 @@ public class App {
                             option = scanner.nextLine();
                             switch (option) {
                                 case "1":
-                                    System.out.print("\nPlease enter the file name: ");
+                                    System.out.print("Please enter the file name to search: ");
                                     String fileName = scanner.nextLine();
                                     request = "SER " + NODE_IP + " " + NODE_PORT + " \"" + fileName + "\" 0";
                                     request = String.format("%04d", request.length() + 5) + " " + request + "\n";
                                     response = null;
                                     try {
                                         response = messageBroker.sendAndReceive(request, NODE_IP, NODE_PORT, Constants.NODE_SEARCH_TIMEOUT).trim();
+                                        StringTokenizer stringTokenizer = new StringTokenizer(response);
+                                        String length = stringTokenizer.nextToken();
+                                        String command = stringTokenizer.nextToken();
+                                        int fileCount = Integer.parseInt(stringTokenizer.nextToken());
+                                        if (fileCount == 9999 || fileCount == 9998) {
+                                            System.out.println("\nNo files available for the search term '" + fileName + "'");
+                                            break;
+                                        }
+                                        String ipAddress = stringTokenizer.nextToken();
+                                        int port = Integer.parseInt(stringTokenizer.nextToken());
+                                        int hops = Integer.parseInt(stringTokenizer.nextToken());
+                                        ArrayList<String> fileNames = new ArrayList<>();
+                                        for (int i = 0; i < fileCount; i++) {
+                                            String tempToken = stringTokenizer.nextToken();
+                                            if (tempToken.startsWith("\"")) {
+                                                if (tempToken.endsWith("\"")) {
+                                                    fileNames.add(tempToken.substring(1, tempToken.lastIndexOf("\"")));
+                                                } else {
+                                                    String tempFileName = tempToken.substring(1);
+                                                    while (!(tempToken = stringTokenizer.nextToken()).endsWith("\"")) {
+                                                        tempFileName += " " + tempToken;
+                                                    }
+                                                    tempFileName += " " + tempToken.substring(0, tempToken.length() - 1);
+                                                    fileNames.add(tempFileName);
+                                                }
+                                            } else {
+                                                System.out.println("Error: Invalid search result.");
+                                                break;
+                                            }
+                                        }
+                                        if (fileNames.size() > 0) {
+                                            System.out.println("\nAvailable files for the search term '" + fileName + "':");
+                                            for (int i = 0; i < fileNames.size(); i++) {
+                                                System.out.println((i + 1) + ". " + fileNames.get(i));
+                                            }
+                                        } else {
+                                            System.out.println("\nNo files available for the search term '" + fileName + "':");
+                                        }
                                     } catch (IOException e) {
-                                       System.out.println("Error: Unable to search.");
+                                        System.out.println("Error: Unable to search.");
                                     }
-                                    // todo: handle response here
-                                    System.out.println(response);
                                     break;
                                 case "2":
                                     request = "PRINT";
@@ -122,7 +159,7 @@ public class App {
                                         break loop2;
                                     }
                                 default:
-                                    System.out.println("\nInvalid option number. Try again.\n");
+                                    System.out.println("Invalid option number. Try again.\n");
                             }
                         }
                     } else if (response.equals("0017 STARTOK 9999")) {

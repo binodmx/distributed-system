@@ -23,7 +23,7 @@ public class DataSendingOperation implements Runnable {
             String fileName = dIn.readUTF();
 
             if (fileName != null) {
-                sendFile(new File(fileName));
+                sendFile(new File("." + System.getProperty("file.separator") + "node" + System.getProperty("file.separator") + fileName));
             }
             in.close();
         } catch (IOException e) {

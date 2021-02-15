@@ -123,7 +123,7 @@ public class QueryHandler implements Runnable {
 
                         hops = Integer.parseInt(stringTokenizer.nextToken());
 
-                        // searching for matching file names
+                        // searching for matching file names in current node
                         ArrayList<File> foundFiles = new ArrayList<>();
                         for (File file : files) {
                             boolean isMatching = true;
@@ -139,21 +139,26 @@ public class QueryHandler implements Runnable {
                             }
                         }
 
-                        // output found files or send the SER request for 2 neighbour nodes
+                        // if found output found files, unless send the SER request for 2 neighbour nodes
                         if (foundFiles.size() > 0) {
                             response.append(foundFiles.size() + " " + NODE_IP + " " + NODE_PORT + " " + hops);
                             for (File file : foundFiles) {
-                                response.append(" " + file.getName());
+                                response.append(" \"" + file.getName() + "\"");
                             }
                         } else if (hops < Constants.MAX_HOPS && nodes.size() > 0) {
                             request = "SER " + NODE_IP + " " + NODE_PORT + " \"" + String.join(" ", searchTerms) + "\" " + (hops + 1);
                             request = String.format("%04d", request.length() + 5) + " " + request + "\n";
                             Collections.shuffle(nodes);
-                            for (int i = 0; i < Math.min(2, nodes.size()); i++) {
+                            int i = 0;
+                            while (i < Math.min(2, nodes.size())) {
                                 Node node = nodes.get(i);
+                                i++;
+                                if (node.getIpAddress().equals(ipAddress) && node.getPort() == port) {
+                                    continue;
+                                }
                                 try {
                                     String mbResponse = messageBroker.sendAndReceive(request, node.getIpAddress(), node.getPort(), Constants.NODE_SEARCH_TIMEOUT);
-                                    response = new StringBuilder(mbResponse);
+                                    response = new StringBuilder(mbResponse.substring(5));
                                     break;
                                 } catch (IOException e) {
                                     System.out.println("Error: Couldn't connect the node at " + node.getIpAddress() + ":" + node.getPort());
@@ -310,7 +315,7 @@ public class QueryHandler implements Runnable {
                         }
                         break;
                     case "PRINTF":
-                        response.append("PRINTFOK ").append(nodes.size());
+                        response.append("PRINTFOK ").append(files.size());
                         for (File file : files) {
                             response.append(" \"").append(file.getName()).append("\"");
                         }

@@ -48,7 +48,7 @@ public class Node {
             System.exit(0);
         }
 
-        // starting file handler
+        // randomly assigning file names
         ArrayList<String> fileNames = new ArrayList<String>(Arrays.asList(
                 "Adventures of Tintin",
                 "Jack and Jill",
@@ -72,7 +72,7 @@ public class Node {
                 "Hacking for Dummies"
         ));
         Collections.shuffle(fileNames);
-        for (int i = 0; i < Constants.MAX_FILES; i++) {
+        for (int i = 0; i < Math.min(Constants.MAX_FILES, (int) (Math.random() * 10) + Constants.MIN_FILES); i++) {
             files.add(new File(fileNames.get(i)));
         }
         System.out.println("Node " + MY_USERNAME + " is created at " + MY_IP + ":" + MY_PORT + ". Waiting for incoming requests...");

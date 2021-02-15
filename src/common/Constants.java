@@ -13,6 +13,7 @@ public class Constants {
     public static final int MAX_NODES = 10;
     public static final int MAX_HOPS = 5;
     public static final int MAX_FILES = 5;
+    public static final int MIN_FILES = 3;
     public static final int FTP_PORT_OFFSET = 100;
 
 }
