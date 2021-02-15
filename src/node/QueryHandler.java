@@ -3,18 +3,17 @@ package node;
 import common.Constants;
 import common.File;
 import common.Node;
-import comms.MessageBroker;
-import exceptions.AlreadyAssignedException;
-import exceptions.AlreadyRegisteredException;
-import exceptions.CommandErrorException;
-import exceptions.ServerFullException;
+import common.MessageBroker;
+import common.AlreadyAssignedException;
+import common.AlreadyRegisteredException;
+import common.CommandErrorException;
+import common.ServerFullException;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.util.*;
-import java.util.stream.IntStream;
 
 public class QueryHandler implements Runnable {
     private DatagramSocket datagramSocket;
@@ -160,6 +159,9 @@ public class QueryHandler implements Runnable {
                                     System.out.println("Error: Couldn't connect the node at " + node.getIpAddress() + ":" + node.getPort());
                                 }
                             }
+                            if (response.toString().equals("SEROK ")) {
+                                response.append("9999");
+                            }
                         } else {
                             response.append("0");
                         }
@@ -243,7 +245,21 @@ public class QueryHandler implements Runnable {
                             request = String.format("%04d", request.length() + 5) + " " + request + "\n";
                             String mbResponse = messageBroker.sendAndReceive(request, SERVER_IP, SERVER_PORT, Constants.SERVER_UNREG_TIMEOUT);
                             System.out.println(mbResponse.trim());
-                            // todo: handle unregister error codes
+                            length = stringTokenizer.nextToken();
+                            command = stringTokenizer.nextToken();
+                            String value = stringTokenizer.nextToken();
+                            switch (value) {
+                                case "0":
+                                    System.out.println("Unregistered successfully.");
+                                    break;
+                                case "9999":
+                                    throw new CommandErrorException("Error: Unable to unregister.");
+                            }
+                        } catch (CommandErrorException e) {
+                            System.out.println(e.getMessage());
+                            if (!response.toString().contains("9999")) {
+                                response.append("9999");
+                            }
                         } catch (IOException e) {
                             System.out.println("Error: Couldn't unregister from the server.");
                             if (!response.toString().contains("9999")) {

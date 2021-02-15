@@ -1,4 +1,4 @@
-package exceptions;
+package common;
 
 public class ServerFullException extends Exception {
     public ServerFullException(String message) {

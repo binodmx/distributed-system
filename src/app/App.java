@@ -1,7 +1,7 @@
 package app;
 
 import common.Constants;
-import comms.MessageBroker;
+import common.MessageBroker;
 
 import java.io.IOException;
 import java.net.SocketException;

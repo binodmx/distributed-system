@@ -2,11 +2,11 @@ package server;
 
 import common.Constants;
 import common.Node;
-import comms.MessageBroker;
-import exceptions.AlreadyAssignedException;
-import exceptions.AlreadyRegisteredException;
-import exceptions.CommandErrorException;
-import exceptions.ServerFullException;
+import common.MessageBroker;
+import common.AlreadyAssignedException;
+import common.AlreadyRegisteredException;
+import common.CommandErrorException;
+import common.ServerFullException;
 
 import java.io.IOException;
 import java.net.DatagramPacket;

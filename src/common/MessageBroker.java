@@ -1,6 +1,4 @@
-package comms;
-
-import common.Constants;
+package common;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
