@@ -13,9 +13,8 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
-import java.util.ArrayList;
-import java.util.NoSuchElementException;
-import java.util.StringTokenizer;
+import java.util.*;
+import java.util.stream.IntStream;
 
 public class QueryHandler implements Runnable {
     private DatagramSocket datagramSocket;
@@ -107,26 +106,33 @@ public class QueryHandler implements Runnable {
 
                         // extracting search terms from the search query
                         searchTerms = new ArrayList<>();
-                        String temp;
-                        if ((temp = stringTokenizer.nextToken()).startsWith("\"")) {
-                            searchTerms.add(temp.substring(1));
+                        String temp = stringTokenizer.nextToken();
+                        if (temp.startsWith("\"")) {
+                            if (temp.endsWith("\"")) {
+                                searchTerms.add(temp.substring(1, temp.lastIndexOf("\"")));
+                            } else {
+                                searchTerms.add(temp.substring(1));
+                                while (!(temp = stringTokenizer.nextToken()).endsWith("\"")) {
+                                    searchTerms.add(temp);
+                                }
+                                searchTerms.add(temp.substring(0,temp.length() - 1));
+                            }
                         } else {
                             response.append("9998");
                             break;
                         }
-                        while ((temp = stringTokenizer.nextToken()).endsWith("\"")) {
-                            searchTerms.add(temp);
-                        }
-                        hops = Integer.parseInt(temp);
+
+                        hops = Integer.parseInt(stringTokenizer.nextToken());
 
                         // searching for matching file names
                         ArrayList<File> foundFiles = new ArrayList<>();
                         for (File file : files) {
                             boolean isMatching = true;
-                            String fileName = file.getName();
+                            ArrayList<String> fileNameSlices = new ArrayList<>(Arrays.asList(file.getName().toLowerCase().split("\\s+")));
                             for (String searchTerm : searchTerms) {
-                                if (!fileName.toLowerCase().contains(searchTerm.toLowerCase())) {
+                                if (!fileNameSlices.contains(searchTerm.toLowerCase())) {
                                     isMatching = false;
+                                    break;
                                 }
                             }
                             if (isMatching) {
@@ -134,27 +140,24 @@ public class QueryHandler implements Runnable {
                             }
                         }
 
+                        // output found files or send the SER request for 2 neighbour nodes
                         if (foundFiles.size() > 0) {
                             response.append(foundFiles.size() + " " + NODE_IP + " " + NODE_PORT + " " + hops);
                             for (File file : foundFiles) {
                                 response.append(" " + file.getName());
                             }
-                        } else if (hops < Constants.MAX_HOPS) {
-                            request = "SER " + NODE_IP + " " + NODE_PORT + "\"" + String.join(" ", searchTerms) + "\"" + " " + (hops + 1);
+                        } else if (hops < Constants.MAX_HOPS && nodes.size() > 0) {
+                            request = "SER " + NODE_IP + " " + NODE_PORT + " \"" + String.join(" ", searchTerms) + "\" " + (hops + 1);
                             request = String.format("%04d", request.length() + 5) + " " + request + "\n";
-                            // todo: change here in order to make sure random numbers are not equal
-                            common.Node node1 = nodes.get((int) (Math.random() * nodes.size()));
-                            try {
-                                String response1 = messageBroker.sendAndReceive(request, node1.getIpAddress(), node1.getPort(), Constants.NODE_SEARCH_TIMEOUT);
-                                response = new StringBuilder(response1);
-                            } catch (IOException e1) {
-                                System.out.println("Error: Couldn't connect the node at " + node1.getIpAddress() + ":" + node1.getPort());
-                                common.Node node2 = nodes.get((int) (Math.random() * nodes.size()));
+                            Collections.shuffle(nodes);
+                            for (int i = 0; i < Math.min(2, nodes.size()); i++) {
+                                Node node = nodes.get(i);
                                 try {
-                                    String response2 = messageBroker.sendAndReceive(request, node2.getIpAddress(), node2.getPort(), Constants.NODE_SEARCH_TIMEOUT);
-                                    response = new StringBuilder(response2);
-                                } catch (IOException e2) {
-                                    System.out.println("Error: Couldn't connect the node at " + node2.getIpAddress() + ":" + node2.getPort());
+                                    String mbResponse = messageBroker.sendAndReceive(request, node.getIpAddress(), node.getPort(), Constants.NODE_SEARCH_TIMEOUT);
+                                    response = new StringBuilder(mbResponse);
+                                    break;
+                                } catch (IOException e) {
+                                    System.out.println("Error: Couldn't connect the node at " + node.getIpAddress() + ":" + node.getPort());
                                 }
                             }
                         } else {

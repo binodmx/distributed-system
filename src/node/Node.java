@@ -2,8 +2,7 @@ package node;
 
 import common.File;
 
-import java.util.ArrayList;
-import java.util.StringTokenizer;
+import java.util.*;
 
 public class Node {
     public static void main(String[] args) {
@@ -38,7 +37,35 @@ public class Node {
 
         // starting file handler
         // todo: add ftp server code here
-
+        ArrayList<String> fileNames = new ArrayList<String>(Arrays.asList(
+                "Adventures of Tintin",
+                "Jack and Jill",
+                "Glee",
+                "The Vampire Diarie",
+                "King Arthur",
+                "Windows XP",
+                "Harry Potter",
+                "Kung Fu Panda",
+                "Lady Gaga",
+                "Twilight",
+                "Windows 8",
+                "Mission Impossible",
+                "Turn Up The Music",
+                "Super Mario",
+                "American Pickers",
+                "Microsoft Office 2010",
+                "Happy Feet",
+                "Modern Family",
+                "American Idol",
+                "Hacking for Dummies"
+        ));
+        Collections.shuffle(fileNames);
+        for (int i = 0; i < 5; i++) {
+            files.add(new File(fileNames.get(i)));
+        }
         System.out.println("Node " + MY_USERNAME + " is created at " + MY_IP + ":" + MY_PORT + ". Waiting for incoming requests...");
+        for (File file : files) {
+            System.out.print(file.getName());
+        }
     }
 }
