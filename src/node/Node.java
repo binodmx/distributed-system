@@ -1,7 +1,9 @@
 package node;
 
+import common.Constants;
 import common.File;
 
+import java.io.IOException;
 import java.util.*;
 
 public class Node {
@@ -32,11 +34,21 @@ public class Node {
 
         // starting query handler
         QueryHandler queryHandler = new QueryHandler(nodes, files, MY_IP, MY_PORT, MY_USERNAME, SERVER_IP, SERVER_PORT);
-        Thread thread = new Thread(queryHandler);
-        thread.start();
+        Thread thread1 = new Thread(queryHandler);
+        thread1.start();
+
+        // starting ftp server
+        try {
+            FTPServer ftpServer = null;
+            ftpServer = new FTPServer(MY_PORT + Constants.FTP_PORT_OFFSET, MY_USERNAME);
+            Thread thread2 = new Thread(ftpServer);
+            thread2.start();
+        } catch (IOException e) {
+            System.out.println("Error: Couldn't start the FTP server.");
+            System.exit(0);
+        }
 
         // starting file handler
-        // todo: add ftp server code here
         ArrayList<String> fileNames = new ArrayList<String>(Arrays.asList(
                 "Adventures of Tintin",
                 "Jack and Jill",
@@ -60,12 +72,9 @@ public class Node {
                 "Hacking for Dummies"
         ));
         Collections.shuffle(fileNames);
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < Constants.MAX_FILES; i++) {
             files.add(new File(fileNames.get(i)));
         }
         System.out.println("Node " + MY_USERNAME + " is created at " + MY_IP + ":" + MY_PORT + ". Waiting for incoming requests...");
-        for (File file : files) {
-            System.out.print(file.getName());
-        }
     }
 }

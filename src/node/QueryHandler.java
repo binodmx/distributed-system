@@ -245,6 +245,7 @@ public class QueryHandler implements Runnable {
                             request = String.format("%04d", request.length() + 5) + " " + request + "\n";
                             String mbResponse = messageBroker.sendAndReceive(request, SERVER_IP, SERVER_PORT, Constants.SERVER_UNREG_TIMEOUT);
                             System.out.println(mbResponse.trim());
+                            stringTokenizer = new StringTokenizer(mbResponse);
                             length = stringTokenizer.nextToken();
                             command = stringTokenizer.nextToken();
                             String value = stringTokenizer.nextToken();
@@ -268,17 +269,50 @@ public class QueryHandler implements Runnable {
                         }
                         if (!response.toString().contains("9999")) {
                             response.append("0");
+                            nodes.clear();
                         }
                         break;
                     case "DOWNLOAD":
                         response.append("DOWNLOADOK ");
-                        // todo: ftp client code here
+                        ipAddress = stringTokenizer.nextToken();
+                        port = Integer.parseInt(stringTokenizer.nextToken());
+
+                        // extracting file name from the request
+                        String fileName = "";
+                        String tempNextToken = stringTokenizer.nextToken();
+                        if (tempNextToken.startsWith("\"")) {
+                            if (tempNextToken.endsWith("\"")) {
+                                fileName += tempNextToken.substring(1, tempNextToken.lastIndexOf("\""));
+                            } else {
+                                fileName += tempNextToken.substring(1);
+                                while (!(tempNextToken = stringTokenizer.nextToken()).endsWith("\"")) {
+                                    fileName += " " + tempNextToken;
+                                }
+                                fileName += " " + tempNextToken.substring(0, tempNextToken.lastIndexOf("\""));
+                            }
+                        } else {
+                            response.append("9999");
+                            break;
+                        }
+
+                        try {
+                            FTPClient ftpClient = new FTPClient(ipAddress, port + Constants.FTP_PORT_OFFSET, fileName);
+                        } catch (IOException e) {
+                            System.out.println("Error: Couldn't download the file.");
+                            response.append("9999");
+                        }
                         response.append("0");
                         break;
                     case "PRINT":
                         response.append("PRINTOK ").append(nodes.size());
                         for (common.Node node : nodes) {
-                            response.append(" ").append(node.getIpAddress()).append(" ").append(node.getPort()).append(" ").append(node.getUsername());
+                            response.append(" ").append(node.getIpAddress()).append(" ").append(node.getPort());
+                        }
+                        break;
+                    case "PRINTF":
+                        response.append("PRINTFOK ").append(nodes.size());
+                        for (File file : files) {
+                            response.append(" \"").append(file.getName()).append("\"");
                         }
                         break;
                     default:

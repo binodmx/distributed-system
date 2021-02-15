@@ -59,7 +59,8 @@ public class App {
                             System.out.println("\nChoose an option to continue:");
                             System.out.println("1. Search a file");
                             System.out.println("2. Print routing table");
-                            System.out.println("3. Stop node");
+                            System.out.println("3. Print available files");
+                            System.out.println("4. Stop node");
                             System.out.print("\nPlease enter the option number: ");
                             option = scanner.nextLine();
                             switch (option) {
@@ -90,6 +91,18 @@ public class App {
                                     System.out.println(response);
                                     break;
                                 case "3":
+                                    request = "PRINTF";
+                                    request = String.format("%04d", request.length() + 5) + " " + request + "\n";
+                                    response = null;
+                                    try {
+                                        response = messageBroker.sendAndReceive(request, NODE_IP, NODE_PORT, Constants.NODE_REQUEST_TIMEOUT).trim();
+                                    } catch (IOException e) {
+                                        System.out.println("Error: Unable to print available files.");
+                                    }
+                                    // todo: handle response here
+                                    System.out.println(response);
+                                    break;
+                                case "4":
                                     request = "STOP";
                                     request = String.format("%04d", request.length() + 5) + " " + request + "\n";
                                     response = null;

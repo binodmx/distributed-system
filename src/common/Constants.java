@@ -12,5 +12,7 @@ public class Constants {
     public static final int NODE_RESPONSE_TIMEOUT = 10000;
     public static final int MAX_NODES = 10;
     public static final int MAX_HOPS = 5;
+    public static final int MAX_FILES = 5;
+    public static final int FTP_PORT_OFFSET = 100;
 
 }
