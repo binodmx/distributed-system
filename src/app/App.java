@@ -108,6 +108,14 @@ public class App {
                                             for (int i = 0; i < fileNames.size(); i++) {
                                                 System.out.println((i + 1) + ". " + fileNames.get(i));
                                             }
+                                            //todo : implement donwload
+                                            System.out.print("\nSelect a file to download: ");
+                                            int downloadOption = Integer.parseInt(scanner.nextLine());
+                                            request = "DOWNLOAD " + ipAddress + " " + port + " \"" + fileNames.get(downloadOption-1) + "\"";
+                                            request = String.format("%04d", request.length() + 5) + " " + request + "\n";
+                                            response = messageBroker.sendAndReceive(request, ipAddress, port, Constants.NODE_SEARCH_TIMEOUT).trim();
+                                            System.out.println(response);
+
                                         } else {
                                             System.out.println("\nNo files available for the search term '" + fileName + "':");
                                         }

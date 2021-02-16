@@ -302,6 +302,8 @@ public class QueryHandler implements Runnable {
 
                         try {
                             FTPClient ftpClient = new FTPClient(ipAddress, port + Constants.FTP_PORT_OFFSET, fileName);
+                            String current = new java.io.File( "." ).getCanonicalPath();
+                            System.out.println("Current dir:"+current);
                         } catch (IOException e) {
                             System.out.println("Error: Couldn't download the file.");
                             response.append("9999");
