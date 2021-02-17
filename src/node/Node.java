@@ -48,7 +48,7 @@ public class Node {
             System.exit(0);
         }
 
-        System.out.println("Node " + MY_USERNAME + " is created at " + MY_IP + ":" + MY_PORT + ". Waiting for incoming requests...");
+        System.out.println("Node " + MY_USERNAME + " created at " + MY_IP + ":" + MY_PORT + ".");
 
         // randomly assigning file names
         ArrayList<String> fileNames = new ArrayList<String>(Arrays.asList(
@@ -80,6 +80,6 @@ public class Node {
             System.out.print( "\"" + fileNames.get(i) + "\" ");
         }
 
-
+        System.out.println("\nWaiting for incoming requests...");
     }
 }
