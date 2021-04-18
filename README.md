@@ -12,17 +12,17 @@ Simple overlay-network based distributed system that allows a set of nodes to sh
 1. Clone the source code to every machine which will be connected to the distributed network.
 2. Select a machine as the server and run following commands to start as the server.
     1. `cd distributed-system/src`
-    2. `javac server/Server.java`
+    2. `make`
     3. `java server.Server -port=<port>`
 >Note: -port flag is optional and default port is `55555`.
 3. In a machine that is selected as a node, run following commands to start as a node.
     1. `cd distributed-system/src`
-    2. `javac node/Node.java`
+    2. `make`
     3. `java node.Node -port=<port> -server=<ip>:<port>`
 >Note: -port flag is optional and default port is `55556`. If server is not configured `localhost:55555` will be taken as default.
 4. Now you can start the app in the same node or in a different machine to control a given node. 
     1. `cd distributed-system/src`
-    2. `javac app/App.java`
+    2. `make`
     3. `java app.App -node=<ip>:<port>`
 >Note: If node is not configured `localhost:55556` will be taken as default.
 
