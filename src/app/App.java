@@ -1,7 +1,6 @@
 package app;
 
-import common.Constants;
-import common.MessageBroker;
+import common.*;
 
 import java.io.IOException;
 import java.net.SocketException;
@@ -23,7 +22,7 @@ public class App {
                 StringTokenizer stringTokenizer = new StringTokenizer(arg.substring(6), ":");
                 NODE_IP = stringTokenizer.nextToken();
                 NODE_PORT = Integer.parseInt(stringTokenizer.nextToken());
-            } else if (arg.toLowerCase().equals("-help")) {
+            } else if (arg.equalsIgnoreCase("-help")) {
                 System.out.println("Usage: java app [-node=<ip>:<port>] [-help]\n");
                 System.out.println("Default node\t= localhost:55556");
             } else {
@@ -58,7 +57,7 @@ public class App {
                         System.out.println("Node started successfully.");
                         loop2: while (true) {
                             System.out.println("\nChoose an option to continue:");
-                            System.out.println("1. Search a file");
+                            System.out.println("1. Search and download a file");
                             System.out.println("2. Print routing table");
                             System.out.println("3. Print available files");
                             System.out.println("4. Stop node");
@@ -76,16 +75,19 @@ public class App {
                                         StringTokenizer stringTokenizer = new StringTokenizer(response);
                                         String length = stringTokenizer.nextToken();
                                         String command = stringTokenizer.nextToken();
-                                        int fileCount = Integer.parseInt(stringTokenizer.nextToken());
-                                        if (fileCount == 9999 || fileCount == 9998) {
+                                        int filesCount = Integer.parseInt(stringTokenizer.nextToken());
+                                        if (filesCount == 0) {
                                             System.out.println("\nNo files available for the search term '" + fileName + "'");
+                                            break;
+                                        } else if (filesCount == 9999 || filesCount == 9998) {
+                                            System.out.println("\nError occurred while searching '" + fileName + "'. Try again...");
                                             break;
                                         }
                                         String ipAddress = stringTokenizer.nextToken();
                                         int port = Integer.parseInt(stringTokenizer.nextToken());
                                         int hops = Integer.parseInt(stringTokenizer.nextToken());
                                         ArrayList<String> fileNames = new ArrayList<>();
-                                        for (int i = 0; i < fileCount; i++) {
+                                        for (int i = 0; i < filesCount; i++) {
                                             String tempToken = stringTokenizer.nextToken();
                                             if (tempToken.startsWith("\"")) {
                                                 if (tempToken.endsWith("\"")) {
@@ -108,13 +110,19 @@ public class App {
                                             for (int i = 0; i < fileNames.size(); i++) {
                                                 System.out.println((i + 1) + ". " + fileNames.get(i));
                                             }
-                                            System.out.print("\nSelect a file to download: ");
+                                            System.out.print("\nEnter number of the file to download (Enter 0 go to the main menu): ");
                                             int downloadOption = Integer.parseInt(scanner.nextLine());
+                                            if (downloadOption <= 0 || downloadOption > fileNames.size()) {
+                                                break;
+                                            }
                                             request = "DOWNLOAD " + ipAddress + " " + port + " \"" + fileNames.get(downloadOption - 1) + "\"";
                                             request = String.format("%04d", request.length() + 5) + " " + request + "\n";
                                             response = messageBroker.sendAndReceive(request, NODE_IP, NODE_PORT, Constants.NODE_SEARCH_TIMEOUT).trim();
-                                            // todo: handle response here
-                                            System.out.println(response);
+                                            if (response.equals("0017 DOWNLOADOK 0")) {
+                                                System.out.println("File downloaded successfully.");
+                                            } else {
+                                                System.out.println("Error: Unable to download the file.");
+                                            }
                                         } else {
                                             System.out.println("\nNo files available for the search term '" + fileName + "':");
                                         }
@@ -128,11 +136,26 @@ public class App {
                                     response = null;
                                     try {
                                         response = messageBroker.sendAndReceive(request, NODE_IP, NODE_PORT, Constants.NODE_REQUEST_TIMEOUT).trim();
+                                        StringTokenizer stringTokenizer = new StringTokenizer(response);
+                                        String length = stringTokenizer.nextToken();
+                                        String command = stringTokenizer.nextToken();
+                                        int nodesCount = Integer.parseInt(stringTokenizer.nextToken());
+                                        if (nodesCount == 0) {
+                                            System.out.println("Routing table is empty.");
+                                            break;
+                                        } else {
+                                            int i = 1;
+                                            while (stringTokenizer.hasMoreTokens()) {
+                                                System.out.print(i + ". ");
+                                                System.out.print(stringTokenizer.nextToken());
+                                                System.out.print(":");
+                                                System.out.println(Integer.parseInt(stringTokenizer.nextToken()));
+                                                i++;
+                                            }
+                                        }
                                     } catch (IOException e) {
                                         System.out.println("Error: Unable to print the routing table.");
                                     }
-                                    // todo: handle response here
-                                    System.out.println(response);
                                     break;
                                 case "3":
                                     request = "PRINTF";
@@ -143,8 +166,33 @@ public class App {
                                     } catch (IOException e) {
                                         System.out.println("Error: Unable to print available files.");
                                     }
-                                    // todo: handle response here
-                                    System.out.println(response);
+                                    StringTokenizer stringTokenizer = new StringTokenizer(response);
+                                    String length = stringTokenizer.nextToken();
+                                    String command = stringTokenizer.nextToken();
+                                    int filesCount = Integer.parseInt(stringTokenizer.nextToken());
+                                    ArrayList<String> fileNames = new ArrayList<>();
+                                    for (int i = 0; i < filesCount; i++) {
+                                        String tempToken = stringTokenizer.nextToken();
+                                        if (tempToken.startsWith("\"")) {
+                                            if (tempToken.endsWith("\"")) {
+                                                fileNames.add(tempToken.substring(1, tempToken.lastIndexOf("\"")));
+                                            } else {
+                                                String tempFileName = tempToken.substring(1);
+                                                while (!(tempToken = stringTokenizer.nextToken()).endsWith("\"")) {
+                                                    tempFileName += " " + tempToken;
+                                                }
+                                                tempFileName += " " + tempToken.substring(0, tempToken.length() - 1);
+                                                fileNames.add(tempFileName);
+                                            }
+                                        } else {
+                                            System.out.println("Error: Unable to print files list.");
+                                            break;
+                                        }
+                                    }
+                                    System.out.println("Available files in the current node are listed below.");
+                                    for (int i = 0; i < fileNames.size(); i++) {
+                                        System.out.println((i + 1) + ". " + fileNames.get(i));
+                                    }
                                     break;
                                 case "4":
                                     request = "STOP";

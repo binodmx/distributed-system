@@ -20,7 +20,7 @@ Simple overlay-network based distributed system that allows a set of nodes to sh
     2. `javac node/Node.java`
     3. `java node.Node -port=<port> -server=<ip>:<port>`
 >Note: -port flag is optional and default port is `55556`. If server is not configured `localhost:55555` will be taken as default.
-4. You can start the app  
+4. Now you can start the app in the same node or in a different machine to control a given node. 
     1. `cd distributed-system/src`
     2. `javac app/App.java`
     3. `java app.App -node=<ip>:<port>`
@@ -56,44 +56,44 @@ Simple overlay-network based distributed system that allows a set of nodes to sh
         </tr>
         <tr>
             <td rowspan="8">Node</td>
-            <td>Join</td>
+            <td>Join the network</td>
             <td><code>&lt;length> JOIN &lt;ip> &lt;port></code></td>
             <td><code>&lt;length> JOINOK &lt;value></code></td>
         </tr>
         <tr>
-            <td>Leave</td>
+            <td>Leave the network</td>
             <td><code>&lt;length> LEAVE &lt;ip> &lt;port></code></td>
             <td><code>&lt;length> LEAVEOK &lt;value></code></td>
         </tr>
         <tr>
-            <td>Search</td>
-            <td><code>&lt;length> SER &lt;ip> &lt;port> “&lt;filename>” &lt;hops></code></td>
+            <td>Search files using a search term</td>
+            <td><code>&lt;length> SER &lt;ip> &lt;port> “&lt;searchterm>” &lt;hops></code></td>
             <td><code>&lt;length> SEROK &lt;#files> &lt;ip> &lt;port> &lt;hops> “&lt;filename1>” “&lt;filename2>”...</code></td>
         </tr>
         <tr>
-            <td>Download</td>
+            <td>Download a given file</td>
             <td><code>&lt;length> DOWNLOAD &lt;ip> &lt;port> “&lt;filename>”</code></td>
-            <td><code></code></td>
+            <td><code>&lt;length> DOWNLOADOK &lt;value></code></td>
         </tr>
         <tr>
-            <td>Start</td>
+            <td>Start the node</td>
             <td><code>&lt;length> START</code></td>
             <td><code>&lt;length> STARTOK &lt;value></code></td>
         </tr>
         <tr>
-            <td>Stop</td>
+            <td>Stop the node</td>
             <td><code>&lt;length> STOP</code></td>
             <td><code>&lt;length> STOPOK &lt;value></code></td>
         </tr>
         <tr>
-            <td>Print</td>
+            <td>Print nodes in the routing table</td>
             <td><code>&lt;length> PRINT</code></td>
-            <td><code>&lt;length> PRINTOK &lt;value></code></td>
+            <td><code>&lt;length> PRINTOK &lt;#nodes> &lt;ip1> &lt;port1> &lt;ip2> &lt;port2>...</code></td>
         </tr>
         <tr>
-            <td>Print Files</td>
+            <td>Print files in current node</td>
             <td><code>&lt;length> PRINTF</code></td>
-            <td><code>&lt;length> PRINTfOK &lt;value></code></td>
+            <td><code>&lt;length> PRINTFOK &lt;#files> &lt;filename1> &lt;filename2>...</code></td>
         </tr>
     </tbody>
 </table>
@@ -142,11 +142,7 @@ Simple overlay-network based distributed system that allows a set of nodes to sh
             <td>Error while removing the node from the routing table.</td>
         </tr>
         <tr>
-            <td rowspan="3">SEROK</td>
-            <td>0</td>
-            <td>No matching results. Searched key is not in key table.</td>
-        </tr>
-        <tr>
+            <td rowspan="2">SEROK</td>
             <td>9999</td>
             <td>Failure due to unreachable nodes.</td>
         </tr>
