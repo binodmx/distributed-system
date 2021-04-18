@@ -20,10 +20,6 @@ public class DataReceivingOperation implements Runnable {
             DataOutputStream dOut = new DataOutputStream(serverSocket.getOutputStream());
             dOut.writeUTF(fileName);
             dOut.flush();
-
-            String canonicalPath = new File(".").getCanonicalPath();
-            System.out.println("Current directory path using canonical path method: " + canonicalPath);
-
             receiveFile();
             in.close();
         } catch (IOException e) {

@@ -21,12 +21,8 @@ public class DataSendingOperation implements Runnable {
             in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             DataInputStream dIn = new DataInputStream(clientSocket.getInputStream());
             String fileName = dIn.readUTF();
-
-            String canonicalPath = new File(".").getCanonicalPath();
-            System.out.println("Current directory path using canonical path method: " + canonicalPath);
-
             if (fileName != null) {
-                sendFile(new File("." + System.getProperty("file.separator") + "src" + System.getProperty("file.separator") +  "node" + System.getProperty("file.separator") + "files" + System.getProperty("file.separator") + fileName));
+                sendFile(new File("." + System.getProperty("file.separator") +  "node" + System.getProperty("file.separator") + "files" + System.getProperty("file.separator") + fileName));
             }
             in.close();
         } catch (IOException e) {
