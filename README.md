@@ -1,5 +1,5 @@
 # Distributed System for File Sharing
-Simple overlay-network based distributed system that allows a set of nodes to share contents among each other.
+Simple overlay-network based distributed system that allows a set of nodes to share contents among each other
 
 ## User Instructions
 
