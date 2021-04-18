@@ -17,13 +17,15 @@ public class Node {
         ArrayList<File> files = new ArrayList<>();
 
         for (String arg : args) {
-            if (arg.toLowerCase().startsWith("-port=")) {
-                MY_PORT = Integer.parseInt(arg.substring(6));
+            if (arg.toLowerCase().startsWith("-node=")) {
+                StringTokenizer stringTokenizer = new StringTokenizer(arg.substring(6), ":");
+                MY_IP = stringTokenizer.nextToken();
+                MY_PORT = Integer.parseInt(stringTokenizer.nextToken());
             } else if (arg.toLowerCase().startsWith("-server=")) {
                 StringTokenizer stringTokenizer = new StringTokenizer(arg.substring(8), ":");
                 SERVER_IP = stringTokenizer.nextToken();
                 SERVER_PORT = Integer.parseInt(stringTokenizer.nextToken());
-            } else if (arg.toLowerCase().equals("-help")) {
+            } else if (arg.equalsIgnoreCase("-help")) {
                 System.out.println("Usage: java node [-port=<port>] [-server=<ip>:<port>] [-help]\n");
                 System.out.println("Default port\t= 55556\nDefault server\t= localhost:55555");
             } else {
@@ -39,8 +41,7 @@ public class Node {
 
         // starting ftp server
         try {
-            FTPServer ftpServer = null;
-            ftpServer = new FTPServer(MY_PORT + Constants.FTP_PORT_OFFSET, MY_USERNAME);
+            FTPServer ftpServer = new FTPServer(MY_PORT + Constants.FTP_PORT_OFFSET, MY_USERNAME);
             Thread thread2 = new Thread(ftpServer);
             thread2.start();
         } catch (IOException e) {
@@ -51,7 +52,7 @@ public class Node {
         System.out.println("Node " + MY_USERNAME + " created at " + MY_IP + ":" + MY_PORT + ".");
 
         // randomly assigning file names
-        ArrayList<String> fileNames = new ArrayList<String>(Arrays.asList(
+        ArrayList<String> fileNames = new ArrayList<>(Arrays.asList(
                 "Adventures of Tintin",
                 "Jack and Jill",
                 "Glee",

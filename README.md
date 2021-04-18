@@ -18,8 +18,8 @@ Simple overlay-network based distributed system that allows a set of nodes to sh
 3. In a machine that is selected as a node, run following commands to start as a node.
     1. `cd distributed-system/src`
     2. `make`
-    3. `java node.Node -port=<port> -server=<ip>:<port>`
->Note: -port flag is optional and default port is `55556`. If server is not configured `localhost:55555` will be taken as default.
+    3. `java node.Node -node=<ip>:<port> -server=<ip>:<port>`
+>Note: -node flag is optional and default value is `localhost:55556`. If server is not configured `localhost:55555` will be taken as default.
 4. Now you can start the app in the same node or in a different machine to control a given node. 
     1. `cd distributed-system/src`
     2. `make`

@@ -53,7 +53,7 @@ public class App {
                     } catch (IOException e) {
                         System.out.println("Error: Unable to start the node.");
                     }
-                    if (response.equals("0014 STARTOK 0")) {
+                    if (response != null && response.equals("0014 STARTOK 0")) {
                         System.out.println("Node started successfully.");
                         loop2: while (true) {
                             System.out.println("\nChoose an option to continue:");
@@ -217,7 +217,7 @@ public class App {
                                     System.out.println("Invalid option number. Try again.\n");
                             }
                         }
-                    } else if (response.equals("0017 STARTOK 9999")) {
+                    } else if (response != null && response.equals("0017 STARTOK 9999")) {
                         System.out.println("Error: An error occurred while starting the node.");
                     } else {
                         System.out.println("Error: An unknown error occurred while starting the node.");
