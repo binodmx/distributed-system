@@ -27,6 +27,7 @@ Simple overlay-network based distributed system that allows a set of nodes to sh
 >Note: If node is not configured `localhost:55556` will be taken as default.
 
 ## Netcat Commands
+Connect to server or node using `nc -u <ip> <port>` and enter following Netcat commands to control server or node.
 
 <table>
     <thead>
