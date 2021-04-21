@@ -18,11 +18,13 @@ public class MessageBroker {
     }
 
     public void send(DatagramPacket datagramPacket, int timeout) throws IOException {
+        System.out.println("send ");
         datagramSocket.setSoTimeout(timeout);
         datagramSocket.send(datagramPacket);
     }
 
     public DatagramPacket receive(int timeout) throws IOException {
+        System.out.println("receive ");
         byte[] buffer = new byte[65536];
         DatagramPacket requestDatagramPacket = new DatagramPacket(buffer, buffer.length);
         datagramSocket.setSoTimeout(timeout);
@@ -31,6 +33,7 @@ public class MessageBroker {
     }
 
     public String sendAndReceive(String request, String ipAddress, int port, int timeout) throws IOException {
+        System.out.println("send and receive ");
         DatagramPacket requestDatagramPacket = new DatagramPacket(
                 request.getBytes(),
                 request.length(),

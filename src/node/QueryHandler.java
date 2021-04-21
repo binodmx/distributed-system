@@ -59,8 +59,12 @@ public class QueryHandler implements Runnable {
             try {
                 String request = new String(incomingDatagramPacket.getData(), 0,
                         incomingDatagramPacket.getLength());
-                System.out.println(incomingDatagramPacket.getAddress() + ":" + incomingDatagramPacket.getPort() +
+                // TODO: Receive - Done
+                System.out.println(
+                        "Receive : " +
+                        incomingDatagramPacket.getAddress() + ":" + incomingDatagramPacket.getPort() +
                         " - " + request.replace("\n", ""));
+
                 StringTokenizer stringTokenizer = new StringTokenizer(request.trim(), " ");
                 String length = stringTokenizer.nextToken();
                 String command = stringTokenizer.nextToken();
@@ -99,6 +103,7 @@ public class QueryHandler implements Runnable {
                         }
                         break;
                     case "SER":
+
                         response.append("SEROK ");
                         ipAddress = stringTokenizer.nextToken();
                         port = Integer.parseInt(stringTokenizer.nextToken());
@@ -120,7 +125,7 @@ public class QueryHandler implements Runnable {
                             response.append("9998");
                             break;
                         }
-
+                        // TODO: calculate number of hops
                         hops = Integer.parseInt(stringTokenizer.nextToken());
 
                         // searching for matching file names in current node
@@ -157,7 +162,10 @@ public class QueryHandler implements Runnable {
                                     continue;
                                 }
                                 try {
+                                    //TODO: start time
                                     String mbResponse = messageBroker.sendAndReceive(request, node.getIpAddress(), node.getPort(), Constants.NODE_SEARCH_TIMEOUT);
+                                    //TODO: end time
+                                    //TODO: end time - start time
                                     response = new StringBuilder(mbResponse.substring(5));
                                     break;
                                 } catch (IOException e) {
