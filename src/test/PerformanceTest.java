@@ -1,17 +1,44 @@
-package app;
+package test;
 
-import common.*;
+import common.Constants;
+import common.MessageBroker;
 
+import java.util.concurrent.TimeUnit;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.StringTokenizer;
 
-public class App {
+public class PerformanceTest {
+
     public static void main(String[] args) {
+
+        ArrayList<String> queryfiles = new ArrayList<>();
+        ArrayList<Float> timeElaps =  new ArrayList<>();
+
+        try {
+            File myObj = new File("src/Queries.txt");
+            Scanner myReader = new Scanner(myObj);
+            while (myReader.hasNextLine()) {
+                String data = myReader.nextLine();
+//                System.out.println(data);
+                queryfiles.add(data);
+            }
+            myReader.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+        System.out.println("Done with file read !!!");
+        for( String i : queryfiles){
+            System.out.println(i);
+        }
+
         String NODE_IP = "localhost";
-        int NODE_PORT = 55562;
+        int NODE_PORT = 55560;
         MessageBroker messageBroker = null;
         Scanner scanner = new Scanner(System.in);
         String option;
@@ -34,8 +61,7 @@ public class App {
         try {
             messageBroker = new MessageBroker();
         } catch (SocketException e) {
-            System.out.println("Error: Couldn't " +
-                    "initiate the message broker.");
+            System.out.println("Error: Couldn't initiate the message broker.");
             System.exit(0);
         }
         loop1: while (true) {
@@ -67,68 +93,90 @@ public class App {
                             switch (option) {
                                 case "1":
                                     System.out.print("Please enter the file name to search: ");
-                                    String fileName = scanner.nextLine();
-                                    request = "SER " + NODE_IP + " " + NODE_PORT + " \"" + fileName + "\" 0";
-                                    request = String.format("%04d", request.length() + 5) + " " + request + "\n";
-                                    response = null;
-                                    try {
-                                        response = messageBroker.sendAndReceive(request, NODE_IP, NODE_PORT, Constants.NODE_SEARCH_TIMEOUT).trim();
-                                        StringTokenizer stringTokenizer = new StringTokenizer(response);
-                                        String length = stringTokenizer.nextToken();
-                                        String command = stringTokenizer.nextToken();
-                                        int filesCount = Integer.parseInt(stringTokenizer.nextToken());
-                                        if (filesCount == 0) {
-                                            System.out.println("\nNo files available for the search term '" + fileName + "'");
-                                            break;
-                                        } else if (filesCount == 9999 || filesCount == 9998) {
-                                            System.out.println("\nError occurred while searching '" + fileName + "'. Try again...");
-                                            break;
-                                        }
-                                        String ipAddress = stringTokenizer.nextToken();
-                                        int port = Integer.parseInt(stringTokenizer.nextToken());
-                                        int hops = Integer.parseInt(stringTokenizer.nextToken());
-                                        ArrayList<String> fileNames = new ArrayList<>();
-                                        for (int i = 0; i < filesCount; i++) {
-                                            String tempToken = stringTokenizer.nextToken();
-                                            if (tempToken.startsWith("\"")) {
-                                                if (tempToken.endsWith("\"")) {
-                                                    fileNames.add(tempToken.substring(1, tempToken.lastIndexOf("\"")));
-                                                } else {
-                                                    String tempFileName = tempToken.substring(1);
-                                                    while (!(tempToken = stringTokenizer.nextToken()).endsWith("\"")) {
-                                                        tempFileName += " " + tempToken;
-                                                    }
-                                                    tempFileName += " " + tempToken.substring(0, tempToken.length() - 1);
-                                                    fileNames.add(tempFileName);
-                                                }
-                                            } else {
-                                                System.out.println("Error: Invalid search result.");
-                                                break;
-                                            }
-                                        }
-                                        if (fileNames.size() > 0) {
-                                            System.out.println("\nAvailable files for the search term '" + fileName + "':");
-                                            for (int i = 0; i < fileNames.size(); i++) {
-                                                System.out.println((i + 1) + ". " + fileNames.get(i));
-                                            }
-                                            System.out.print("\nEnter number of the file to download (Enter 0 go to the main menu): ");
-                                            int downloadOption = Integer.parseInt(scanner.nextLine());
-                                            if (downloadOption <= 0 || downloadOption > fileNames.size()) {
-                                                break;
-                                            }
-                                            request = "DOWNLOAD " + ipAddress + " " + port + " \"" + fileNames.get(downloadOption - 1) + "\"";
-                                            request = String.format("%04d", request.length() + 5) + " " + request + "\n";
+                                    for( String queryItem : queryfiles) {
+                                        System.out.println(queryItem);
+                                        long startTime = System.nanoTime();
+
+                                        String fileName = queryItem;
+//                                                scanner.nextLine();
+                                        request = "SER " + NODE_IP + " " + NODE_PORT + " \"" + fileName + "\" 0";
+                                        request = String.format("%04d", request.length() + 5) + " " + request + "\n";
+                                        response = null;
+                                        try {
                                             response = messageBroker.sendAndReceive(request, NODE_IP, NODE_PORT, Constants.NODE_SEARCH_TIMEOUT).trim();
-                                            if (response.equals("0017 DOWNLOADOK 0")) {
-                                                System.out.println("File downloaded successfully.");
-                                            } else {
-                                                System.out.println("Error: Unable to download the file.");
+                                            StringTokenizer stringTokenizer = new StringTokenizer(response);
+                                            String length = stringTokenizer.nextToken();
+                                            String command = stringTokenizer.nextToken();
+                                            int filesCount = Integer.parseInt(stringTokenizer.nextToken());
+                                            if (filesCount == 0) {
+                                                System.out.println("\nNo files available for the search term '" + fileName + "'");
+                                                long endTime = System.nanoTime();
+                                                long timeElapsed = endTime - startTime;
+
+                                                System.out.println("Execution time in nanoseconds: " + timeElapsed);
+                                                System.out.println("Execution time in milliseconds: " + timeElapsed / 1000000);
+                                                continue ;
+                                            } else if (filesCount == 9999 || filesCount == 9998) {
+                                                System.out.println("\nError occurred while searching '" + fileName + "'. Try again...");
+                                                long endTime = System.nanoTime();
+                                                long timeElapsed = endTime - startTime;
+
+                                                System.out.println("Execution time in nanoseconds: " + timeElapsed);
+                                                System.out.println("Execution time in milliseconds: " + timeElapsed / 1000000);
+                                                continue ;
                                             }
-                                        } else {
-                                            System.out.println("\nNo files available for the search term '" + fileName + "':");
+                                            String ipAddress = stringTokenizer.nextToken();
+                                            int port = Integer.parseInt(stringTokenizer.nextToken());
+                                            int hops = Integer.parseInt(stringTokenizer.nextToken());
+                                            ArrayList<String> fileNames = new ArrayList<>();
+                                            for (int i = 0; i < filesCount; i++) {
+                                                String tempToken = stringTokenizer.nextToken();
+                                                if (tempToken.startsWith("\"")) {
+                                                    if (tempToken.endsWith("\"")) {
+                                                        fileNames.add(tempToken.substring(1, tempToken.lastIndexOf("\"")));
+                                                    } else {
+                                                        String tempFileName = tempToken.substring(1);
+                                                        while (!(tempToken = stringTokenizer.nextToken()).endsWith("\"")) {
+                                                            tempFileName += " " + tempToken;
+                                                        }
+                                                        tempFileName += " " + tempToken.substring(0, tempToken.length() - 1);
+                                                        fileNames.add(tempFileName);
+                                                    }
+                                                } else {
+                                                    System.out.println("Error: Invalid search result.");
+                                                    break;
+                                                }
+                                            }
+                                            long endTime = System.nanoTime();
+                                            long timeElapsed = endTime - startTime;
+
+                                            System.out.println("Execution time in nanoseconds: " + timeElapsed);
+                                            System.out.println("Execution time in milliseconds: " + timeElapsed / 1000000);
+                                            if (fileNames.size() > 0) {
+                                                System.out.println("\nAvailable files for the search term '" + fileName + "':");
+                                                for (int i = 0; i < fileNames.size(); i++) {
+                                                    System.out.println((i + 1) + ". " + fileNames.get(i));
+                                                }
+                                                System.out.print("\nEnter number of the file to download (Enter 0 go to the main menu): ");
+//                                                int downloadOption = Integer.parseInt(scanner.nextLine());
+//                                                if (downloadOption <= 0 || downloadOption > fileNames.size()) {
+//                                                    break;
+//                                                }
+//                                                request = "DOWNLOAD " + ipAddress + " " + port + " \"" + fileNames.get(downloadOption - 1) + "\"";
+//                                                request = String.format("%04d", request.length() + 5) + " " + request + "\n";
+//                                                response = messageBroker.sendAndReceive(request, NODE_IP, NODE_PORT, Constants.NODE_SEARCH_TIMEOUT).trim();
+//                                                if (response.equals("0017 DOWNLOADOK 0")) {
+//                                                    System.out.println("File downloaded successfully.");
+//                                                } else {
+//                                                    System.out.println("Error: Unable to download the file.");
+//                                                }
+                                            }else {
+                                                System.out.println("\nNo files available for the search term '" + fileName + "':");
+                                            }
+                                        } catch (IOException e) {
+                                            System.out.println("Error: Unable to search.");
                                         }
-                                    } catch (IOException e) {
-                                        System.out.println("Error: Unable to search.");
+
                                     }
                                     break;
                                 case "2":
