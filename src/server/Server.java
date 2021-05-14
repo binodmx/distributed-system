@@ -25,13 +25,13 @@ public class Server {
         int MY_PORT = 55555;
         try {
             for (String arg : args) {
-                if (arg.toLowerCase().startsWith("-port=")) {
-                    MY_PORT = Integer.parseInt(arg.substring(6));
-                } else if (arg.equalsIgnoreCase("-help")) {
-                    System.out.println("Usage: java server [-port=<port>] [-help]\n");
-                    System.out.println("Default port = 55555.");
+                if (arg.toLowerCase().startsWith("--port=")) {
+                    MY_PORT = Integer.parseInt(arg.substring(7));
+                } else if (arg.equalsIgnoreCase("--help")) {
+                    System.out.println("Usage: java server.Server [--port=<port>] | [--help]\n");
+                    System.out.println("Default port\t= 55555");
                 } else {
-                    System.out.println("Error: Invalid arguments.\nUse 'java server -help' command for help.");
+                    System.out.println("Error: Invalid arguments.\nUse 'java server.Server --help' command for help.");
                     System.exit(0);
                 }
             }

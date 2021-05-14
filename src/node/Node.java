@@ -17,19 +17,19 @@ public class Node {
         ArrayList<File> files = new ArrayList<>();
 
         for (String arg : args) {
-            if (arg.toLowerCase().startsWith("-node=")) {
-                StringTokenizer stringTokenizer = new StringTokenizer(arg.substring(6), ":");
+            if (arg.toLowerCase().startsWith("--node=")) {
+                StringTokenizer stringTokenizer = new StringTokenizer(arg.substring(7), ":");
                 MY_IP = stringTokenizer.nextToken();
                 MY_PORT = Integer.parseInt(stringTokenizer.nextToken());
-            } else if (arg.toLowerCase().startsWith("-server=")) {
-                StringTokenizer stringTokenizer = new StringTokenizer(arg.substring(8), ":");
+            } else if (arg.toLowerCase().startsWith("--server=")) {
+                StringTokenizer stringTokenizer = new StringTokenizer(arg.substring(9), ":");
                 SERVER_IP = stringTokenizer.nextToken();
                 SERVER_PORT = Integer.parseInt(stringTokenizer.nextToken());
-            } else if (arg.equalsIgnoreCase("-help")) {
-                System.out.println("Usage: java node [-port=<port>] [-server=<ip>:<port>] [-help]\n");
+            } else if (arg.equalsIgnoreCase("--help")) {
+                System.out.println("Usage: java node.Node [--port=<port>] [--server=<ip>:<port>] | [--help]\n");
                 System.out.println("Default port\t= 55556\nDefault server\t= localhost:55555");
             } else {
-                System.out.println("Error: Invalid arguments.\nUse 'java node -help' command for help.");
+                System.out.println("Error: Invalid arguments.\nUse 'java node.Node --help' command for help.");
                 System.exit(0);
             }
         }

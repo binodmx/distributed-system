@@ -18,15 +18,15 @@ public class App {
         String request;
         String response;
         for (String arg : args) {
-            if (arg.toLowerCase().startsWith("-node=")) {
-                StringTokenizer stringTokenizer = new StringTokenizer(arg.substring(6), ":");
+            if (arg.toLowerCase().startsWith("--node=")) {
+                StringTokenizer stringTokenizer = new StringTokenizer(arg.substring(7), ":");
                 NODE_IP = stringTokenizer.nextToken();
                 NODE_PORT = Integer.parseInt(stringTokenizer.nextToken());
-            } else if (arg.equalsIgnoreCase("-help")) {
-                System.out.println("Usage: java app [-node=<ip>:<port>] [-help]\n");
+            } else if (arg.equalsIgnoreCase("--help")) {
+                System.out.println("Usage: java app [--node=<ip>:<port>] | [--help]\n");
                 System.out.println("Default node\t= localhost:55556");
             } else {
-                System.out.println("Error: Invalid arguments.\nUse 'java node -help' command for help.");
+                System.out.println("Error: Invalid arguments.\nUse 'java app.App --help' command for help.");
                 System.exit(0);
             }
         }
